@@ -45,7 +45,7 @@ const LocationMap = () => {
     try {
       const API_KEY = "pk.f048e46c65c8255a6e9cbb50bb30d3a8"; // Your LocationIQ API Key
       const response = await fetch(
-        `https://us1.locationiq.com/v1/reverse.php?key=${API_KEY}&lat=${lat}&lon=${lon}&format=json`
+        `https://us1.locationiq.com/v1/reverse?key=${API_KEY}&lat=${lat}&lon=${lon}&format=json`
       );
       const data = await response.json();
 
@@ -55,37 +55,35 @@ const LocationMap = () => {
       } else {
         setError("No location found");
       }
-    } catch (error) {
+    } catch {
       setError("Failed to fetch location details");
     }
   };
 
   return (
-    <div className="p-4">
-      {error && <p className="text-red-500">{error}</p>}
+    <div className="w-screen h-screen relative">
+      {error && (
+        <p className="text-red-500 absolute top-2 left-2 bg-white p-2 rounded z-50">
+          {error}
+        </p>
+      )}
 
-      {location && (
-        <div>
-          <p>
-            Latitude: {location.lat}, Longitude: {location.lon}
-          </p>
-          <p>Address: {address || "Fetching address..."}</p>
-
-          {/* Leaflet Map */}
-          <MapContainer
-            center={[location.lat, location.lon]}
-            zoom={13}
-            style={{ height: "400px", width: "100%" }}
-          >
-            {/* LocationIQ Tile Layer */}
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-            {/* Marker at User Location */}
-            <Marker position={[location.lat, location.lon]} icon={icon}>
-              <Popup>{address || "You are here!"}</Popup>
-            </Marker>
-          </MapContainer>
-        </div>
+      {!location ? (
+        <p className="absolute top-2 left-2 bg-white p-2 rounded z-50">
+          Fetching location...
+        </p>
+      ) : (
+        <MapContainer
+          center={[location.lat, location.lon]}
+          zoom={13}
+          className="w-full h-full"
+          style={{ height: "100vh", width: "100vw" }} // Explicit inline height/width
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <Marker position={[location.lat, location.lon]} icon={icon}>
+            <Popup>{address || "You are here!"}</Popup>
+          </Marker>
+        </MapContainer>
       )}
     </div>
   );
