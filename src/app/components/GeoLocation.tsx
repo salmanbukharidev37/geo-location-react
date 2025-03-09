@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css"; // Import Leaflet CSS
 import L from "leaflet";
 
-// Fix default icon issue in Leaflet
 import markerIconPng from "leaflet/dist/images/marker-icon.png";
 import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
 
@@ -43,7 +42,7 @@ const LocationMap = () => {
 
   const fetchLocationDetails = async (lat: number, lon: number) => {
     try {
-      const API_KEY = "pk.f048e46c65c8255a6e9cbb50bb30d3a8"; // Your LocationIQ API Key
+      const API_KEY = "pk.f048e46c65c8255a6e9cbb50bb30d3a8";
       const response = await fetch(
         `https://us1.locationiq.com/v1/reverse?key=${API_KEY}&lat=${lat}&lon=${lon}&format=json`
       );
@@ -77,7 +76,7 @@ const LocationMap = () => {
           center={[location.lat, location.lon]}
           zoom={13}
           className="w-full h-full"
-          style={{ height: "100vh", width: "100vw" }} // Explicit inline height/width
+          style={{ height: "100vh", width: "100vw" }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <Marker position={[location.lat, location.lon]} icon={icon}>
