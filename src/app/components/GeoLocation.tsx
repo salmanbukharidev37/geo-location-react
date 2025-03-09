@@ -1,13 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css"; // Import Leaflet CSS
+import L from "leaflet";
 
-const GeolocationComponent = () => {
+// Fix default icon issue in Leaflet
+import markerIconPng from "leaflet/dist/images/marker-icon.png";
+import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
+
+const icon = new L.Icon({
+  iconUrl: markerIconPng,
+  shadowUrl: markerShadowPng,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const LocationMap = () => {
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(
     null
   );
   const [address, setAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const getLocation = () => {
+  useEffect(() => {
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser");
       return;
@@ -19,27 +33,25 @@ const GeolocationComponent = () => {
         const lon = position.coords.longitude;
         setLocation({ lat, lon });
 
-        // Fetch address from LocationIQ
         fetchLocationDetails(lat, lon);
       },
       (err) => {
         setError(err.message);
       }
     );
-  };
+  }, []);
 
   const fetchLocationDetails = async (lat: number, lon: number) => {
     try {
       const API_KEY = "pk.f048e46c65c8255a6e9cbb50bb30d3a8"; // Your LocationIQ API Key
       const response = await fetch(
-        `https://us1.locationiq.com/v1/reverse?key=${API_KEY}&lat=${lat}&lon=${lon}&format=json`
+        `https://us1.locationiq.com/v1/reverse.php?key=${API_KEY}&lat=${lat}&lon=${lon}&format=json`
       );
-
       const data = await response.json();
 
       if (data.address) {
-        // const { residential, city, state, country } = data.display_name;
-        setAddress(`${data.display_name}`);
+        const { road, city, state, country } = data.address;
+        setAddress(`${road || "Unnamed Road"}, ${city || state}, ${country}`);
       } else {
         setError("No location found");
       }
@@ -50,24 +62,33 @@ const GeolocationComponent = () => {
 
   return (
     <div className="p-4">
-      <button
-        onClick={getLocation}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        Get Location
-      </button>
+      {error && <p className="text-red-500">{error}</p>}
 
       {location && (
-        <p className="mt-2">
-          Latitude: {location.lat}, Longitude: {location.lon}
-        </p>
+        <div>
+          <p>
+            Latitude: {location.lat}, Longitude: {location.lon}
+          </p>
+          <p>Address: {address || "Fetching address..."}</p>
+
+          {/* Leaflet Map */}
+          <MapContainer
+            center={[location.lat, location.lon]}
+            zoom={13}
+            style={{ height: "400px", width: "100%" }}
+          >
+            {/* LocationIQ Tile Layer */}
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+            {/* Marker at User Location */}
+            <Marker position={[location.lat, location.lon]} icon={icon}>
+              <Popup>{address || "You are here!"}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
       )}
-
-      {address && <p className="mt-2">Address: {address}</p>}
-
-      {error && <p className="mt-2 text-red-500">{error}</p>}
     </div>
   );
 };
 
-export default GeolocationComponent;
+export default LocationMap;
